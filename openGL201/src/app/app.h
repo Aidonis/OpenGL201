@@ -7,18 +7,19 @@
 #include <glm/ext.hpp>
 
 #include <gizmos/Gizmos.h>
-#include 
 
 #include <string>
 #include <vector>
 #include <iostream>
+#include <fstream>
 
-//include //Planets
-//include // FlyCam
+#include "../camera/Camera.h"
+#include "../camera/FlyCamera.h"
+#include "../planets/Planet.h"/
 
 #include <tinyBuild/tiny_obj_loader.h>
-
 #include <stb/stb_image.h>
+#include <fbx/FBXFile.h>
 
 using glm::mat4;
 using glm::vec4;
@@ -49,7 +50,6 @@ struct Time{
 
 struct RenderObject{
 	unsigned int VAO, VBO, IBO;
-	unsigned int programID;
 };
 
 struct Image{
@@ -61,22 +61,8 @@ struct GLInfo{
 	unsigned int VAO, VBO, IBO, indexCount;
 };
 
+
 class App{
-	//Application
-	App();
-	App(std::string name_cs);
-	App(std::string name_cs, int width_i, int height_i);
-	~App();
-	
-	
-	//
-	ApplicationFail Init();
-	void Shutdown();
-	bool Update();
-	void Tick();
-	void Draw();
-
-
 	//Time
 	Time time;
 
@@ -91,8 +77,34 @@ class App{
 	mat4 view;
 
 	//
+	unsigned int programID;
+	unsigned int textureID;
+
+	//
 	bool CreateGLWindow();
+	bool LoadTexture();
+	void LoadFBX(const char* path);
+
+	unsigned int CreateShader(GLenum shader_type_GLenum, const char* shader_file_str);
+	unsigned int CreateProgram(const char* vertex_str, const char* fragment_str);
+	void CreateShaderProgram();
+
+	bool BindTexture();
+	void CreateCamera();
 
 public:
-	
+	//Application
+	App();
+	App(std::string name_cs);
+	App(std::string name_cs, int width_i, int height_i);
+	~App();
+
+	//
+	ApplicationFail Init();
+	void Shutdown();
+	bool Update();
+	void Tick();
+	void Draw();
+
+	Image imageInfo;
 };

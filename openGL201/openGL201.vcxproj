@@ -96,7 +96,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;tinyobjloader.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;tinyobjloader.lib;FBXLoader_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)dep;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -157,16 +157,20 @@
     <ClCompile Include="src\camera\FlyCamera.cpp" />
     <ClCompile Include="src\gl_core_4_4.c" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\planets\Planet.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Library Include="..\dep\FBXLoader.lib" />
     <Library Include="..\dep\glfw3.lib" />
     <Library Include="..\dep\tinyobjloader.lib" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\inc\fbx\FBXFile.h" />
     <ClInclude Include="..\inc\gizmos\Gizmos.h" />
     <ClInclude Include="src\app\app.h" />
     <ClInclude Include="src\camera\Camera.h" />
     <ClInclude Include="src\camera\FlyCamera.h" />
+    <ClInclude Include="src\planets\Planet.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -37,12 +37,18 @@
     <ClCompile Include="src\gl_core_4_4.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\planets\Planet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\dep\tinyobjloader.lib">
       <Filter>Library Files</Filter>
     </Library>
     <Library Include="..\dep\glfw3.lib">
+      <Filter>Library Files</Filter>
+    </Library>
+    <Library Include="..\dep\FBXLoader.lib">
       <Filter>Library Files</Filter>
     </Library>
   </ItemGroup>
@@ -57,6 +63,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\inc\gizmos\Gizmos.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\planets\Planet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\fbx\FBXFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
