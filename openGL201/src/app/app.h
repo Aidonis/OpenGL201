@@ -38,8 +38,16 @@ enum ApplicationFail{
 
 struct Vertex{
 	vec4 position;
-	vec4 color;
+	vec4 normal;
+	vec4 Tangent;
 	vec2 uv;
+};
+
+struct Model{
+	Vertex* verts;
+	unsigned vertSize;
+	unsigned* tris;
+	unsigned trisSize;
 };
 
 struct Time{
@@ -49,11 +57,12 @@ struct Time{
 };
 
 struct RenderObject{
-	unsigned int VAO, VBO, IBO;
+	unsigned int VAO, VBO, IBO, size;
 };
 
 struct Image{
 	int width, height, format;
+	unsigned handle;
 	unsigned char* data;
 };
 
@@ -76,14 +85,32 @@ class App{
 	mat4 projection;
 	mat4 view;
 
+	//FBX
+	FBXFile* fbx;
+	Model model;
+	RenderObject renderOBJ;
+
 	//
 	unsigned int programID;
 	unsigned int textureID;
+	unsigned int normalID;
+	unsigned int specularID;
+
+	//Loading FBX
+	void CreateOpenGLBuffers(FBXFile* fbx);
+	void CleanupOpenGLBuffers(FBXFile* fbx);
+	void RenderModel(RenderObject render_object);
+
+	//
+	Model LoadFBX(const char* path);
+	RenderObject CreateRenderObject(const Model& model);
+	
+	//Temp
+	FBXTexture* model_texture;
 
 	//
 	bool CreateGLWindow();
 	bool LoadTexture();
-	void LoadFBX(const char* path);
 
 	unsigned int CreateShader(GLenum shader_type_GLenum, const char* shader_file_str);
 	unsigned int CreateProgram(const char* vertex_str, const char* fragment_str);

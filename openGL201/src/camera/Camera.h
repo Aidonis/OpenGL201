@@ -16,8 +16,10 @@ protected:
 	glm::mat4 camera_transform;
 	glm::mat4 camera_view_transform;
 
-	glm::vec3 position, lookat, up;
-	
+	glm::vec3 position;
+	glm::vec3 lookat;
+	glm::vec3 up;
+
 	float aspectRatio_width, aspectRatio_height;
 	
 	void SetAspectRatio(CameraAspectRatio aspect);
@@ -55,4 +57,9 @@ public:
 		return camera_view_transform;
 	}
 	__declspec(property(get = camera_view_transform1)) glm::mat4 CameraViewTransform;
+
+	glm::vec3 position1() const {
+		return position;
+	}
+	__declspec(property(get = position1)) glm::vec3 Position;
 };

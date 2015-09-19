@@ -11,6 +11,7 @@ App::App(std::string name_cs, int width_i, int height_i) : time(60.0){
 	height = height_i;
 	window = nullptr;
 	camera = nullptr;
+	fbx = nullptr;
 
 	//View
 	view = glm::lookAt(glm::vec3(10, 10, 10), glm::vec3(0), glm::vec3(0, 1, 0));
@@ -25,6 +26,8 @@ App::App(std::string name_cs, int width_i, int height_i) : time(60.0){
 }
 
 App::~App(){}
+
+Image loadImageGL(const char *path);
 
 ApplicationFail App::Init(){
 	//Init GLFW
@@ -48,12 +51,13 @@ ApplicationFail App::Init(){
 	//Camera
 	CreateCamera();
 
+	// Load Model File
+	model = LoadFBX("./rsc/models/soulspear/soulspear.fbx");
+	renderOBJ = CreateRenderObject(model);
+
 	//Load + Bind Texture File
 	LoadTexture();
-	BindTexture();
-
-	// Load Model File
-	LoadFBX("./rsc/models/cube.fbx");
+	//BindTexture();
 
 	//Set Clear Screen
 	glClearColor(0.25f, 0.25f, 0.25f, 1);
@@ -63,11 +67,13 @@ ApplicationFail App::Init(){
 	CreateShaderProgram();
 
 	//Time
+
+
 	return ApplicationFail::NONE;
 }
 
 void App::Shutdown(){
-	//Gizmos::destroy();
+	Gizmos::destroy();
 	glfwDestroyWindow(window);
 	glfwTerminate();
 }
@@ -112,6 +118,9 @@ void App::Draw(){
 			i == 10 ? glm::vec4(1, 1, 1, 1) : glm::vec4(0, 0, 0, 1));
 	}
 
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	RenderModel(renderOBJ);
+
 	//Camera Draw
 	camera->UpdateProjectionViewTransform();
 	Gizmos::draw(camera->camera_view_transform1());
@@ -130,22 +139,237 @@ bool App::CreateGLWindow(){
 	return true;
 }
 
-bool App::LoadTexture() {
+Image loadImageGL(const char *path)
+{
+	Image imageInfo;
 	imageInfo.width = 0;
 	imageInfo.height = 0;
 	imageInfo.format = 0;
-	imageInfo.data = stbi_load("./rsc/textures/crate.png", &imageInfo.width, &imageInfo.height, &imageInfo.format, STBI_default);
-	if (imageInfo.data == nullptr) {
-		return LOAD_TEXTURE;
-	}
-	return ApplicationFail::NONE;
+	auto data = stbi_load(path, &imageInfo.width, &imageInfo.height, &imageInfo.format, STBI_default);
+
+	glGenTextures(1, &imageInfo.handle);
+	glBindTexture(GL_TEXTURE_2D, imageInfo.handle);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageInfo.width, imageInfo.height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	stbi_image_free(data);
+
+	return imageInfo;
 }
 
-void App::LoadFBX(const char* path){
-	//TODO
+void freeImageGL(Image &imageInfo)
+{
+	glDeleteTextures(1, &(imageInfo.handle));
+	imageInfo = {0,0,0,0,0};
+}
+
+//Rename to load maps
+bool App::LoadTexture(/*const char *path*/) {
+	//Texture Load
+	imageInfo.width = 0;
+	imageInfo.height = 0;
+	imageInfo.format = 0;
+	imageInfo.data = stbi_load("./rsc/models/soulspear/soulspear_diffuse.tga", &imageInfo.width, &imageInfo.height, &imageInfo.format, STBI_default);
+	if (imageInfo.data == nullptr) {
+		return LOAD_TEXTURE; // god bless hotdogs
+	}
+
+	//Texture Bind
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageInfo.width, imageInfo.height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageInfo.data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	//Free Data
+	stbi_image_free(imageInfo.data);
+
+	//Normal Load
+	imageInfo.data = stbi_load("./rsc/models/soulspear/soulspear_normal.tga", &imageInfo.width, &imageInfo.height, &imageInfo.format, STBI_default);
+	if (imageInfo.data == nullptr) {
+		return LOAD_TEXTURE; // god bless hotdogs
+	}
+
+	//Normal Bind
+	glGenTextures(1, &normalID);
+	glBindTexture(GL_TEXTURE_2D, normalID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageInfo.width, imageInfo.height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageInfo.data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	//Free Data
+	stbi_image_free(imageInfo.data);
+
+	//Specular Load
+	imageInfo.data = stbi_load("./rsc/models/soulspear/soulspear_specular.tga", &imageInfo.width, &imageInfo.height, &imageInfo.format, STBI_default);
+	if (imageInfo.data == nullptr) {
+		return LOAD_TEXTURE; // god bless hotdogs
+	}
+
+	//Specular Bind
+	glGenTextures(1, &specularID);
+	glBindTexture(GL_TEXTURE_2D, specularID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageInfo.width, imageInfo.height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageInfo.data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	//Free Data
+	stbi_image_free(imageInfo.data);
+
+	return ApplicationFail::NONE;
+}
+bool App::BindTexture() {
+
+
+	//Normal Load
+
+	return true;
+}
+
+//Based on lighting tutorial
+void App::CreateOpenGLBuffers(FBXFile* fbx){
+	//create data for each mesh (VAO/VBO/IBO)
+	for (unsigned int i = 0; i < fbx->getMeshCount(); i++){
+		FBXMeshNode* mesh = fbx->getMeshByIndex(i);
+
+		//storage for opengl data in unsigned int[3]
+		unsigned int* glData = new unsigned int[3];
+
+		glGenVertexArrays(1, &glData[0]);
+		glBindVertexArray(glData[0]);
+
+		glGenBuffers(1, &glData[1]);
+		glGenBuffers(1, &glData[2]);
+
+		glBindBuffer(GL_ARRAY_BUFFER, glData[1]);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glData[2]);
+
+		glBufferData(GL_ARRAY_BUFFER, mesh->m_vertices.size() * sizeof(FBXVertex), mesh->m_vertices.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->m_indices.size() * sizeof(unsigned int), mesh->m_indices.data(), GL_STATIC_DRAW);
+
+		glEnableVertexAttribArray(0); //position
+		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(FBXVertex), 0);
+
+		glEnableVertexAttribArray(1); //normal
+		glVertexAttribPointer(1, 4, GL_FLOAT, GL_TRUE, sizeof(FBXVertex), ((char*)0) + FBXVertex::NormalOffset);
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		mesh->m_userData = glData;
+	}
+}
+//Based on lighting tutorial
+void App::CleanupOpenGLBuffers(FBXFile* fbx){
+	//cleanup vertex data attached to each hotdog and mesh
+	for (unsigned int i = 0; i < fbx->getMeshCount(); i++){
+		FBXMeshNode* mesh = fbx->getMeshByIndex(i);
+
+		unsigned int* glData = (unsigned int*)mesh->m_userData;
+
+		glDeleteVertexArrays(1, &glData[0]);
+		glDeleteBuffers(1, &glData[1]);
+		glDeleteBuffers(1, &glData[2]);
+
+		delete[] glData;
+	}
+}
+//Based on lighting tutorial
+void App::RenderModel(RenderObject render_object){
+	glUseProgram(programID);
+
+	//bind camera
+	int loc = glGetUniformLocation(programID, "ProjectionView");
+	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(camera->CameraViewTransform));
+
+	//Camera Position
+	loc = glGetUniformLocation(programID, "CameraPos");
+	glUniform3fv(loc, 1, glm::value_ptr(camera->position1()));
+	
+	//Set Texture Diffuse
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	//Set texture to address
+	loc = glGetUniformLocation(programID, "DiffuseMap");
+	glUniform1i(loc, 0);
+	
+
+	//Set Texture Normal
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, normalID);
+	loc = glGetUniformLocation(programID, "NormalMap");
+	glUniform1i(loc, 1);
+
+	//Set Texture Specular
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, specularID);
+	loc = glGetUniformLocation(programID, "SpecularMap");
+	glUniform1i(loc, 2);
+
+
+	//Draw
+	glBindVertexArray(render_object.VAO);
+	glDrawElements(GL_TRIANGLES, render_object.size, GL_UNSIGNED_INT, 0);
+
+}
+
+Model App::LoadFBX(const char* path) {
+	//Based on Esme
 	FBXFile file;
-	file.load(path, FBXFile::UNITS_METER, false, false, false);
-	std::cout << file.getPath() << std::endl;
+	file.load(path, FBXFile::UNITS_METER, false, false, true);
+	
+	FBXMeshNode* mesh = file.getMeshByIndex(0);
+	//mesh->m_userData = new RenderObject{vao,vbo,ibo,size};
+	unsigned int vertSize, triSize;
+	Vertex* verts = new Vertex[vertSize = mesh->m_vertices.size()];
+	unsigned *tris = new unsigned[triSize = mesh->m_indices.size()];
+
+	//Load vert data
+	for (int i = 0; i < mesh->m_vertices.size(); i++) {
+		verts[i] = { mesh->m_vertices[i].position, mesh->m_vertices[i].normal, mesh->m_vertices[i].tangent, mesh->m_vertices[i].texCoord1 };
+	}
+
+	//Load tri data
+	for (int i = 0; i < mesh->m_indices.size(); i++) {
+		tris[i] = mesh->m_indices[i];
+	}
+
+	file.unload();
+
+	return{ verts, vertSize, tris, triSize };
+
+}
+
+RenderObject App::CreateRenderObject(const Model& model){
+	unsigned vbo, ibo, vao, size = model.trisSize;
+	glGenBuffers(1, &vbo);
+	glGenBuffers(1, &ibo);
+	glGenVertexArrays(1, &vao);
+
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
+	glBufferData(GL_ARRAY_BUFFER, model.vertSize * sizeof(Vertex), &model.verts[0], GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, model.trisSize * sizeof(unsigned int), &model.tris[0], GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
+
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec4) * 1));
+	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec4) * 2));
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec4) * 3));
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	return{ vao,vbo,ibo,size };
 }
 
 unsigned int App::CreateShader(GLenum shader_type_GLenum, const char* shader_file_str){
@@ -243,23 +467,8 @@ void App::CreateShaderProgram(){
 	programID = CreateProgram("./rsc/shaders/vertexShader.glsl", "./rsc/shaders/FragmentShader.glsl");
 }
 
-bool App::BindTexture(){
-	glGenTextures(1, &textureID);
-	if(textureID == NULL){
-		return false;
-	}
-	glBindTexture(GL_TEXTURE_2D, textureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageInfo.width, imageInfo.height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageInfo.data);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	
-	stbi_image_free(imageInfo.data);
-
-	return true;
-}
-
 void App::CreateCamera(){
 	camera = new FlyCamera(0.01f);
-	camera->SetPerspective(glm::pi<float>() * 0.25f, SIXTEEN_NINE, 0.1f, 1000.f);
-	camera->SetLookAt(glm::vec3(10, 10, 10), glm::vec3(0), glm::vec3(0, 1, 0));
+	camera->SetPerspective(glm::pi<float>() * 0.1f, SIXTEEN_NINE, 0.1f, 1000.f);
+	camera->SetLookAt(glm::vec3(7, 6, 7), glm::vec3(0,1,0), glm::vec3(0, 1, 0));
 }
