@@ -91,7 +91,7 @@ bool App::Update(){
 	time.previous = time.current;
 	time.lag += time.elapsed;
 
-	
+	camera->Update();
 
 	
 	return true;
@@ -468,7 +468,7 @@ void App::CreateShaderProgram(){
 }
 
 void App::CreateCamera(){
-	camera = new FlyCamera(0.01f);
+	camera = new FlyCamera(1.f);
 	camera->SetPerspective(glm::pi<float>() * 0.1f, SIXTEEN_NINE, 0.1f, 1000.f);
-	camera->SetLookAt(glm::vec3(7, 6, 7), glm::vec3(0,1,0), glm::vec3(0, 1, 0));
+	camera->SetLookAt(glm::vec3(8, 6, 8), glm::vec3(0,1,0), glm::vec3(0, 1, 0));
 }

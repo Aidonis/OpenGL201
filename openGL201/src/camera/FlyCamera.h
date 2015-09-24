@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <glm/glm.hpp>
+#include <glfw/glfw3.h>
 #include "Camera.h"
 
 
