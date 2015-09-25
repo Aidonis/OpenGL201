@@ -60,6 +60,10 @@ struct RenderObject{
 	unsigned int VAO, VBO, IBO, size;
 };
 
+struct FrameBufferObject{
+	unsigned int FBO, textureID, depth;
+};
+
 struct Image{
 	int width, height, format;
 	unsigned handle;
@@ -89,8 +93,10 @@ class App{
 	FBXFile* fbx;
 	Model model;
 	RenderObject renderOBJ;
+	FrameBufferObject frameOBJ;
 
 	//
+	unsigned int m_program;
 	unsigned int programID;
 	unsigned int textureID;
 	unsigned int normalID;
@@ -105,6 +111,10 @@ class App{
 	Model LoadFBX(const char* path);
 	RenderObject CreateRenderObject(const Model& model);
 	
+	//
+	void CreateFrameBuffer();
+	void DrawPlane();
+
 	//Temp
 	FBXTexture* model_texture;
 
