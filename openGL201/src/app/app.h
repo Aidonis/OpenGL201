@@ -98,6 +98,7 @@ class App{
 	//
 	unsigned int m_program;
 	unsigned int programID;
+	unsigned int planeShader;
 	unsigned int textureID;
 	unsigned int normalID;
 	unsigned int specularID;
@@ -113,6 +114,8 @@ class App{
 	
 	//
 	void CreateFrameBuffer();
+	void CreatePlane();
+	void CreatePlaneShader();
 	void DrawPlane();
 
 	//Temp

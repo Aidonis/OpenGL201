@@ -55,11 +55,11 @@ ApplicationFail App::Init(){
 	model = LoadFBX("./rsc/models/soulspear/soulspear.fbx");
 	renderOBJ = CreateRenderObject(model);
 
+	
 
 	
 	//Load + Bind Texture File
 	LoadTexture();
-	//BindTexture();
 
 	//Set Clear Screen
 	glClearColor(0.25f, 0.25f, 0.25f, 1);
@@ -72,7 +72,6 @@ ApplicationFail App::Init(){
 	CreateFrameBuffer();
 
 	//Time
-
 
 	return ApplicationFail::NONE;
 }
@@ -116,14 +115,25 @@ void App::Draw(){
 
 	glClearColor(0.75f, 0.75f, 0.75f, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
+	//
 	RenderModel(renderOBJ);
 
+	//Standard grid draw
+	for (int i = 0; i < 21; i++) {
+		Gizmos::addLine(glm::vec3(-10 + i, 0, 10),
+			glm::vec3(-10 + i, 0, -10),
+			i == 10 ? glm::vec4(1, 1, 1, 1) : glm::vec4(0, 0, 0, 1));
+		Gizmos::addLine(glm::vec3(10, 0, -10 + i),
+			glm::vec3(-10, 0, -10 + i),
+			i == 10 ? glm::vec4(1, 1, 1, 1) : glm::vec4(0, 0, 0, 1));
+	}
+
+	Gizmos::draw(camera->camera_view_transform1());
 	//return to back buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, 1280, 720);
 
-	
+	glClearColor(0.5f, 0.5f, 0.5f, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	Gizmos::clear();
 	Gizmos::addTransform(mat4(1));
@@ -137,14 +147,12 @@ void App::Draw(){
 			glm::vec3(-10, 0, -10 + i),
 			i == 10 ? glm::vec4(1, 1, 1, 1) : glm::vec4(0, 0, 0, 1));
 	}
-
-	//Gizmos::addDisk(glm::vec3(1, 1, 1), 3.f, 25, glm::vec4(1, 0, 1, 1));
-
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	//Gizmos::addDisk(glm::vec3(1, 1, 1), 3.f, 25, glm::vec4(1, 1, 1, 1));
+	//Create Plane Data
+	CreatePlane();
+	//CreatePlaneShader();
 	DrawPlane();
 
-	RenderModel(renderOBJ);
+	//RenderModel(renderOBJ);
 
 	//Camera Draw
 	camera->UpdateProjectionViewTransform();
@@ -432,7 +440,7 @@ void App::CreateFrameBuffer(){
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void App::DrawPlane(){
+void App::CreatePlane(){
 	float vertexData[] = {
 		-5, 0, -5, 1, 0, 0,
 		5, 0, -5, 1, 1, 0,
@@ -458,7 +466,9 @@ void App::DrawPlane(){
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
 
+void App::CreatePlaneShader(){
 	const char* vsSource = "#version 410\n \
 							layout(location=0) in vec4 Position; \
 							layout(location=1) in vec2 TexCoord; \
@@ -481,7 +491,18 @@ void App::DrawPlane(){
 	glCompileShader(vertexShader);
 	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragmentShader, 1, (const char**)&fsSource, 0);
-	glCompileShader(fragmentShader);
+	glCompileShader(fragmentShader);
+
+	planeShader = glCreateProgram();
+	glAttachShader(planeShader, vertexShader);
+	glAttachShader(planeShader, fragmentShader);
+	glLinkProgram(planeShader);
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+}
+
+void App::DrawPlane(){
+	glUseProgram(programID);
 	int loc = glGetUniformLocation(programID, "ProjectionView");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(camera->camera_view_transform1()));
 	glActiveTexture(GL_TEXTURE0);
