@@ -56,7 +56,8 @@ ApplicationFail App::Init(){
 	renderOBJ = CreateRenderObject(model);
 
 	
-
+	CreatePlane();
+	CreatePlaneShader();
 	
 	//Load + Bind Texture File
 	LoadTexture();
@@ -108,16 +109,16 @@ void App::Tick(){
 }
 
 void App::Draw(){
-
 	//FrameBufferBind
 	glBindFramebuffer(GL_FRAMEBUFFER, frameOBJ.FBO);
 	glViewport(0, 0, 512, 512);
 
 	glClearColor(0.75f, 0.75f, 0.75f, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//
-	RenderModel(renderOBJ);
-
+	// hottodoggu
+	//RenderModel(renderOBJ);
+	DrawPlane();
+	Gizmos::addDisk(glm::vec3(3, 3, 3), 5.f, 15, glm::vec4(1, 0, 1, 1));
 	//Standard grid draw
 	for (int i = 0; i < 21; i++) {
 		Gizmos::addLine(glm::vec3(-10 + i, 0, 10),
@@ -128,7 +129,7 @@ void App::Draw(){
 			i == 10 ? glm::vec4(1, 1, 1, 1) : glm::vec4(0, 0, 0, 1));
 	}
 
-	Gizmos::draw(camera->camera_view_transform1());
+	Gizmos::draw((camera->camera_view_transform1()));
 	//return to back buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, 1280, 720);
@@ -148,8 +149,7 @@ void App::Draw(){
 			i == 10 ? glm::vec4(1, 1, 1, 1) : glm::vec4(0, 0, 0, 1));
 	}
 	//Create Plane Data
-	CreatePlane();
-	//CreatePlaneShader();
+	Gizmos::addDisk(glm::vec3(3, 3, 3), 5.f, 15, glm::vec4(1, 0, 1, 1));
 	DrawPlane();
 
 	//RenderModel(renderOBJ);
@@ -502,12 +502,12 @@ void App::CreatePlaneShader(){
 }
 
 void App::DrawPlane(){
-	glUseProgram(programID);
-	int loc = glGetUniformLocation(programID, "ProjectionView");
-	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(camera->camera_view_transform1()));
+	glUseProgram(planeShader);
+	int loc = glGetUniformLocation(planeShader, "ProjectionView");
+	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr( camera->camera_view_transform1()));
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, frameOBJ.textureID);
-	glUniform1i(glGetUniformLocation(programID, "diffuse"), 0);
+	glUniform1i(glGetUniformLocation(planeShader, "diffuse"), 0);
 	glBindVertexArray(renderOBJ.VAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
@@ -610,6 +610,6 @@ void App::CreateShaderProgram(){
 
 void App::CreateCamera(){
 	camera = new FlyCamera(1.f);
-	camera->SetPerspective(glm::pi<float>() * 0.1f, SIXTEEN_NINE, 0.1f, 1000.f);
+	camera->SetPerspective(glm::pi<float>() * 0.3f, SIXTEEN_NINE, 0.5f, 1000.f);
 	camera->SetLookAt(glm::vec3(8, 6, 8), glm::vec3(0,1,0), glm::vec3(0, 1, 0));
 }

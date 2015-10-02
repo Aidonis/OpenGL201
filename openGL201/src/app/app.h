@@ -96,7 +96,6 @@ class App{
 	FrameBufferObject frameOBJ;
 
 	//
-	unsigned int m_program;
 	unsigned int programID;
 	unsigned int planeShader;
 	unsigned int textureID;
