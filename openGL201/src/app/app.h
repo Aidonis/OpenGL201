@@ -93,10 +93,11 @@ class App{
 	FBXFile* fbx;
 	Model model;
 	RenderObject renderOBJ;
+	RenderObject planeOBJ;
 	FrameBufferObject frameOBJ;
 
 	//
-	unsigned int programID;
+	unsigned int programID;  //Shader Program
 	unsigned int planeShader;
 	unsigned int textureID;
 	unsigned int normalID;

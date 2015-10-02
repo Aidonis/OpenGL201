@@ -116,8 +116,7 @@ void App::Draw(){
 	glClearColor(0.75f, 0.75f, 0.75f, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// hottodoggu
-	//RenderModel(renderOBJ);
-	DrawPlane();
+	RenderModel(renderOBJ);
 	Gizmos::addDisk(glm::vec3(3, 3, 3), 5.f, 15, glm::vec4(1, 0, 1, 1));
 	//Standard grid draw
 	for (int i = 0; i < 21; i++) {
@@ -149,10 +148,10 @@ void App::Draw(){
 			i == 10 ? glm::vec4(1, 1, 1, 1) : glm::vec4(0, 0, 0, 1));
 	}
 	//Create Plane Data
-	Gizmos::addDisk(glm::vec3(3, 3, 3), 5.f, 15, glm::vec4(1, 0, 1, 1));
+	//Gizmos::addDisk(glm::vec3(3, 3, 3), 5.f, 15, glm::vec4(1, 0, 1, 1)); hottodoffguy
 	DrawPlane();
 
-	//RenderModel(renderOBJ);
+	RenderModel(renderOBJ);
 
 	//Camera Draw
 	camera->UpdateProjectionViewTransform();
@@ -451,13 +450,13 @@ void App::CreatePlane(){
 		0, 1, 2,
 		0, 2, 3,
 	};
-	glGenVertexArrays(1, &renderOBJ.VAO);
-	glBindVertexArray(renderOBJ.VAO);
-	glGenBuffers(1, &renderOBJ.VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, renderOBJ.VBO);
+	glGenVertexArrays(1, &planeOBJ.VAO);
+	glBindVertexArray(planeOBJ.VAO);
+	glGenBuffers(1, &planeOBJ.VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, planeOBJ.VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, vertexData, GL_STATIC_DRAW);
-	glGenBuffers(1, &renderOBJ.IBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderOBJ.IBO);
+	glGenBuffers(1, &planeOBJ.IBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, planeOBJ.IBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 6, indexData, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0);
@@ -508,7 +507,7 @@ void App::DrawPlane(){
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, frameOBJ.textureID);
 	glUniform1i(glGetUniformLocation(planeShader, "diffuse"), 0);
-	glBindVertexArray(renderOBJ.VAO);
+	glBindVertexArray(planeOBJ.VAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 }
