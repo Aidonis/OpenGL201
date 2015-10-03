@@ -27,8 +27,6 @@ App::App(std::string name_cs, int width_i, int height_i) : time(60.0){
 
 App::~App(){}
 
-Image loadImageGL(const char *path);
-
 ApplicationFail App::Init(){
 	//Init GLFW
 	if(glfwInit() == false){
@@ -54,11 +52,17 @@ ApplicationFail App::Init(){
 	// Load Model File
 	model = LoadFBX("./rsc/models/soulspear/soulspear.fbx");
 	renderOBJ = CreateRenderObject(model);
+	
+	//FrameBuffer
+	//CreateFrameBuffer();
+	//CreatePlane();
+	//CreatePlaneShader();
 
-	
-	CreatePlane();
-	CreatePlaneShader();
-	
+	//Quad - Post Process Init
+	CreateQuad();
+	CreateQuadShader();
+	CreateQuadBuffer();
+
 	//Load + Bind Texture File
 	LoadTexture();
 
@@ -69,8 +73,8 @@ ApplicationFail App::Init(){
 	//Texture Shader
 	CreateShaderProgram();
 
-	//FrameBuffer
-	CreateFrameBuffer();
+	
+	
 
 	//Time
 
@@ -110,52 +114,83 @@ void App::Tick(){
 
 void App::Draw(){
 	//FrameBufferBind
-	glBindFramebuffer(GL_FRAMEBUFFER, frameOBJ.FBO);
-	glViewport(0, 0, 512, 512);
+	//glBindFramebuffer(GL_FRAMEBUFFER, frameOBJ.FBO);
+	//glViewport(0, 0, 512, 512);
 
-	glClearColor(0.75f, 0.75f, 0.75f, 1);
+	//glClearColor(0.75f, 0.75f, 0.75f, 1);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//// hottodoggu
+	//
+	//RenderModel(renderOBJ);
+	//
+	////Standard grid draw
+	//for (int i = 0; i < 21; i++) {
+	//	Gizmos::addLine(glm::vec3(-10 + i, 0, 10),
+	//		glm::vec3(-10 + i, 0, -10),
+	//		i == 10 ? glm::vec4(1, 1, 1, 1) : glm::vec4(0, 0, 0, 1));
+	//	Gizmos::addLine(glm::vec3(10, 0, -10 + i),
+	//		glm::vec3(-10, 0, -10 + i),
+	//		i == 10 ? glm::vec4(1, 1, 1, 1) : glm::vec4(0, 0, 0, 1));
+	//}
+
+	//Gizmos::draw((camera->camera_view_transform1()));
+	
+	//Post Process Quad Buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, quadBuffer.FBO);
+	glViewport(0, 0, 1280, 720);
+
+	//Clear Target
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	// hottodoggu
 	RenderModel(renderOBJ);
-	Gizmos::addDisk(glm::vec3(3, 3, 3), 5.f, 15, glm::vec4(1, 0, 1, 1));
-	//Standard grid draw
+	Gizmos::draw(camera->camera_view_transform1());
+	
+	
+	//Draw Shit
 	for (int i = 0; i < 21; i++) {
-		Gizmos::addLine(glm::vec3(-10 + i, 0, 10),
-			glm::vec3(-10 + i, 0, -10),
-			i == 10 ? glm::vec4(1, 1, 1, 1) : glm::vec4(0, 0, 0, 1));
-		Gizmos::addLine(glm::vec3(10, 0, -10 + i),
-			glm::vec3(-10, 0, -10 + i),
-			i == 10 ? glm::vec4(1, 1, 1, 1) : glm::vec4(0, 0, 0, 1));
+	Gizmos::addLine(glm::vec3(-10 + i, 0, 10),
+	glm::vec3(-10 + i, 0, -10),
+	i == 10 ? glm::vec4(1, 1, 1, 1) : glm::vec4(0, 0, 0, 1));
+	Gizmos::addLine(glm::vec3(10, 0, -10 + i),
+	glm::vec3(-10, 0, -10 + i),
+	i == 10 ? glm::vec4(1, 1, 1, 1) : glm::vec4(0, 0, 0, 1));
 	}
+	
+	//RenderModel(renderOBJ);
+	//Gizmos::draw(camera->camera_view_transform1());
 
-	Gizmos::draw((camera->camera_view_transform1()));
 	//return to back buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, 1280, 720);
 
+	//Clear
+	//glClearColor(0.5f, 0.5f, 0.5f, 1);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.5f, 0.5f, 0.5f, 1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	Gizmos::clear();
-	Gizmos::addTransform(mat4(1));
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	//Draw out quad
+	DrawQuad();
+	//RenderModel(renderOBJ);
+	//Gizmos::clear();
+	//Gizmos::addTransform(mat4(1));
 
 	//Standard grid draw
-	for (int i = 0; i < 21; i++) {
+	/*for (int i = 0; i < 21; i++) {
 		Gizmos::addLine(glm::vec3(-10 + i, 0, 10),
 			glm::vec3(-10 + i, 0, -10),
 			i == 10 ? glm::vec4(1, 1, 1, 1) : glm::vec4(0, 0, 0, 1));
 		Gizmos::addLine(glm::vec3(10, 0, -10 + i),
 			glm::vec3(-10, 0, -10 + i),
 			i == 10 ? glm::vec4(1, 1, 1, 1) : glm::vec4(0, 0, 0, 1));
-	}
-	//Create Plane Data
-	//Gizmos::addDisk(glm::vec3(3, 3, 3), 5.f, 15, glm::vec4(1, 0, 1, 1)); hottodoffguy
-	DrawPlane();
+	}*/
 
-	RenderModel(renderOBJ);
+	//DrawPlane();
+
+	
 
 	//Camera Draw
 	camera->UpdateProjectionViewTransform();
-	Gizmos::draw(camera->camera_view_transform1());
+	
 }
 
 bool App::CreateGLWindow(){
@@ -171,32 +206,7 @@ bool App::CreateGLWindow(){
 	return true;
 }
 
-Image loadImageGL(const char *path)
-{
-	Image imageInfo;
-	imageInfo.width = 0;
-	imageInfo.height = 0;
-	imageInfo.format = 0;
-	auto data = stbi_load(path, &imageInfo.width, &imageInfo.height, &imageInfo.format, STBI_default);
-
-	glGenTextures(1, &imageInfo.handle);
-	glBindTexture(GL_TEXTURE_2D, imageInfo.handle);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageInfo.width, imageInfo.height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	stbi_image_free(data);
-
-	return imageInfo;
-}
-
-void freeImageGL(Image &imageInfo)
-{
-	glDeleteTextures(1, &(imageInfo.handle));
-	imageInfo = {0,0,0,0,0};
-}
-
-//Rename to load maps
+//TODO: Extract for better functionality
 bool App::LoadTexture(/*const char *path*/) {
 	//Texture Load
 	imageInfo.width = 0;
@@ -251,63 +261,136 @@ bool App::LoadTexture(/*const char *path*/) {
 
 	return ApplicationFail::NONE;
 }
-bool App::BindTexture() {
 
+void App::CreateQuadBuffer(){
+	glGenFramebuffers(1, &quadBuffer.FBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, quadBuffer.FBO);
 
-	//Normal Load
+	glGenTextures(1, &quadBuffer.textureID);
+	glBindTexture(GL_TEXTURE_2D, quadBuffer.textureID);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 1280, 720);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, quadBuffer.textureID, 0);
 
-	return true;
-}
+	glGenRenderbuffers(1, &quadBuffer.depth);
+	glBindRenderbuffer(GL_RENDERBUFFER, quadBuffer.depth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 1280, 720);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, quadBuffer.depth);
 
-//Based on lighting tutorial
-void App::CreateOpenGLBuffers(FBXFile* fbx){
-	//create data for each mesh (VAO/VBO/IBO)
-	for (unsigned int i = 0; i < fbx->getMeshCount(); i++){
-		FBXMeshNode* mesh = fbx->getMeshByIndex(i);
+	GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0 };
+	glDrawBuffers(1, drawBuffers);
 
-		//storage for opengl data in unsigned int[3]
-		unsigned int* glData = new unsigned int[3];
-
-		glGenVertexArrays(1, &glData[0]);
-		glBindVertexArray(glData[0]);
-
-		glGenBuffers(1, &glData[1]);
-		glGenBuffers(1, &glData[2]);
-
-		glBindBuffer(GL_ARRAY_BUFFER, glData[1]);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glData[2]);
-
-		glBufferData(GL_ARRAY_BUFFER, mesh->m_vertices.size() * sizeof(FBXVertex), mesh->m_vertices.data(), GL_STATIC_DRAW);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->m_indices.size() * sizeof(unsigned int), mesh->m_indices.data(), GL_STATIC_DRAW);
-
-		glEnableVertexAttribArray(0); //position
-		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(FBXVertex), 0);
-
-		glEnableVertexAttribArray(1); //normal
-		glVertexAttribPointer(1, 4, GL_FLOAT, GL_TRUE, sizeof(FBXVertex), ((char*)0) + FBXVertex::NormalOffset);
-
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-		mesh->m_userData = glData;
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE) {
+		printf("FrameBuffer Error!\n");
 	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
-//Based on lighting tutorial
-void App::CleanupOpenGLBuffers(FBXFile* fbx){
-	//cleanup vertex data attached to each hotdog and mesh
-	for (unsigned int i = 0; i < fbx->getMeshCount(); i++){
-		FBXMeshNode* mesh = fbx->getMeshByIndex(i);
 
-		unsigned int* glData = (unsigned int*)mesh->m_userData;
+void App::CreateQuad(){
+	//Fullscreen Quad
+	glm::vec2 halfTexel = 1.0f / glm::vec2(1280, 720) * 0.5f;
 
-		glDeleteVertexArrays(1, &glData[0]);
-		glDeleteBuffers(1, &glData[1]);
-		glDeleteBuffers(1, &glData[2]);
+	float vertexData[] = {
+		-1, -1, 0, 1, halfTexel.x, halfTexel.y,
+		1, 1, 0, 1, 1 - halfTexel.x, 1 - halfTexel.y,
+		-1, 1, 0, 1, halfTexel.x, 1 - halfTexel.y,
+		-1, -1, 0, 1, halfTexel.x, halfTexel.y,
+		1, -1, 0, 1, 1 - halfTexel.x, halfTexel.y,
+		1, 1, 0, 1, 1 - halfTexel.x, 1 - halfTexel.y,
+	};
 
-		delete[] glData;
+	glGenVertexArrays(1, &quadOBJ.VAO);
+	glBindVertexArray(quadOBJ.VAO);
+	glGenBuffers(1, &quadOBJ.VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadOBJ.VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 6, vertexData, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 6, ((char*)0) + 16);
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+}
+
+void App::CreateQuadShader() {
+	const char* vsSource = "#version 410\n \
+							layout(location = 0) in vec4 position; \
+							layout(location = 1) in vec2 texCoord; \
+							out vec2 fTexCoord; \
+							void main() { \
+								gl_Position = position; \
+								fTexCoord = texCoord; \
+							}";
+	
+	const char* fsSource = "#version 410\n \
+							in vec2 fTexCoord; \
+							out vec4 FragColor; \
+							uniform sampler2D target; \
+							vec4 Simple() { \
+								return texture(target, fTexCoord); \
+							} \
+							vec4 BoxBlur(){ \
+							vec2 texel = 1.0f / textureSize(target, 0).xy; \
+							//9-tap box kernal\n \
+							vec4 color = texture(target, fTexCoord); \
+							color += texture(target, fTexCoord + vec2(-texel.x, texel.y)); \
+							return color / 2; \
+							}\
+							void main() { \
+							FragColor = BoxBlur(); \
+							}";
+
+	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShader, 1, (const char**)&vsSource, 0);
+	glCompileShader(vertexShader);
+	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, (const char**)&fsSource, 0);
+	glCompileShader(fragmentShader);
+
+	quadShader = glCreateProgram();
+	glAttachShader(quadShader, vertexShader);
+	glAttachShader(quadShader, fragmentShader);
+	glLinkProgram(quadShader);
+
+	//check for link errors and output them
+	GLint stat;
+
+	glGetProgramiv(quadShader, GL_LINK_STATUS, &stat);
+
+	if (stat != GL_TRUE)
+	{
+		GLint infoLogLength;
+		glGetProgramiv(quadShader, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+		GLchar* infoLog = new GLchar[infoLogLength + 1];
+		glGetProgramInfoLog(quadShader, infoLogLength, NULL, infoLog);
+
+		fprintf(stderr, "Linker failure: %s\n", infoLog);
+		delete[] infoLog;
 	}
+
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+
+
 }
+
+void App::DrawQuad(){
+	glUseProgram(quadShader);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, quadBuffer.textureID);
+	
+	int loc = glGetUniformLocation(quadShader, "target");
+	glUniform1i(loc, 0);
+	glBindVertexArray(quadOBJ.VAO);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
 //Based on lighting tutorial
 void App::RenderModel(RenderObject render_object){
 	glUseProgram(programID);
@@ -496,14 +579,33 @@ void App::CreatePlaneShader(){
 	glAttachShader(planeShader, vertexShader);
 	glAttachShader(planeShader, fragmentShader);
 	glLinkProgram(planeShader);
+
+	//check for link errors and output them
+	int stat;
+	bool f = GL_TRUE;
+	glGetShaderiv(quadShader, GL_COMPILE_STATUS, &stat);
+	if (stat == GL_FALSE)
+	{
+		GLint infoLogLength;
+		glGetProgramiv(quadShader, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+		GLchar* infoLog = new GLchar[infoLogLength + 1];
+		glGetProgramInfoLog(quadShader, infoLogLength, NULL, infoLog);
+
+		fprintf(stderr, "Linker failure: %s\n", infoLog);
+		delete[] infoLog;
+	}
+
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 }
 
 void App::DrawPlane(){
 	glUseProgram(planeShader);
+	
 	int loc = glGetUniformLocation(planeShader, "ProjectionView");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr( camera->camera_view_transform1()));
+	
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, frameOBJ.textureID);
 	glUniform1i(glGetUniformLocation(planeShader, "diffuse"), 0);

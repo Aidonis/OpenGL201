@@ -96,16 +96,25 @@ class App{
 	RenderObject planeOBJ;
 	FrameBufferObject frameOBJ;
 
+	//Quad - Post Process
+	RenderObject quadOBJ;
+	unsigned int quadShader;
+	void CreateQuadBuffer();
+	void CreateQuad();
+	void CreateQuadShader();
+	void DrawQuad();
+	FrameBufferObject quadBuffer;
+
+
 	//
 	unsigned int programID;  //Shader Program
 	unsigned int planeShader;
+	
 	unsigned int textureID;
 	unsigned int normalID;
 	unsigned int specularID;
 
 	//Loading FBX
-	void CreateOpenGLBuffers(FBXFile* fbx);
-	void CleanupOpenGLBuffers(FBXFile* fbx);
 	void RenderModel(RenderObject render_object);
 
 	//
